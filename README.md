@@ -17,35 +17,63 @@ Initial version is based around 2020 aluminium extrusion. Other hardware:
     2x ~M2.5 woodscrews 
     2x M3x30 or equivalent pins
 
+# Electronics
+
 Electronics are basically a copy of:
 
-    https://tasmota.github.io/docs/A4988-Stepper-Motor-Controller/
+https://tasmota.github.io/docs/A4988-Stepper-Motor-Controller/
 
-# Weemos D1 Mini
+![a4988](./images/electronicsstartingpoint.jpg)
 
-WemosD1mini setup Instructions
-
-    https://averagemaker.com/2018/03/wemos-d1-mini-setup.html
-
-install CH340 driver for wemos d1 mini usb serial communication
-
-    https://www.wemos.cc/en/latest/ch340_driver.html
-
-if the driver doesn't want to install select uninstall and then install again. seemed to work
-
+# Stepper Driver
 
 A4988 Stepper Driver and carrier board
 
-![a4988](./images/a4988jumperOptions.png)
+![a4988](./images/a4988jumperOptions.png) 
+
+![a4983](./images/a4983.jpg)
     
-    Buck converter
+A4983 is a version of the A4988 with onbord voltage regulator. Unfortunately it is discontinued and witll only be used on the prototypes for convenience. Future versions will require a buck converter.
 
+# Buck converter
 
-with the addition of microswitch connected to the Weemos D1 Mini for homing
+Not currently necessary  
 
-## System Overview
+# Homing Endstop
+
+The addition of microswitch connected to the Weemos D1 Mini for homing is just a NC switch connected as a pulled up input to one of the wD1mini pins.
+
+# System Overview
 
 ![System Overview](./images/SystemOverview.png)
+
+## Setting up the Wemos D1 mini
+
+Setup Instructions
+
+    https://averagemaker.com/2018/03/wemos-d1-mini-setup.html
+
+Install CH340 driver for wemos d1 mini usb serial communication
+
+    https://www.wemos.cc/en/latest/ch340_driver.html
+
+If the driver doesn't want to install select uninstall and then install again. seemed to work
+
+## Moving the stepper motor.
+
+I've worked with the Accelstepper library before. So let's use that:
+
+http://www.airspayce.com/mikem/arduino/AccelStepper/
+
+Install it into the arduino IDE in the usual way. Release notes would suggest that it just works, but lets see!
+
+Yeah, this helps:
+
+https://www.makerguides.com/a4988-stepper-motor-driver-arduino-tutorial/
+
+Also this for the pin numbering on the wd1m:
+
+https://chewett.co.uk/blog/1066/pin-numbering-for-wemos-d1-mini-esp8266/
 
 
 
