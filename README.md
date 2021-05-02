@@ -32,6 +32,14 @@ A4988 Stepper Driver and carrier board
 ![a4988](./images/a4988jumperOptions.png) 
 
 ![a4983](./images/a4983.jpg)
+
+Prototypes:
+| A4988 Pin | MotorWire |
+| --- | --- |
+| 2B | Black |
+| 2A | Green |
+| 1A | Red |
+| 2A | Blue |
     
 A4983 is a version of the A4988 with onbord voltage regulator. Unfortunately it is discontinued and witll only be used on the prototypes for convenience. Future versions will require a buck converter.
 
