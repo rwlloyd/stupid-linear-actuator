@@ -57,13 +57,19 @@ The addition of microswitch connected to the Weemos D1 Mini for homing is just a
 
 ## Setting up the Wemos D1 mini
 
-Setup Instructions
+Specs: https://www.addicore.com/D1-Mini-Dev-Board-p/ad318.htm
 
-    https://averagemaker.com/2018/03/wemos-d1-mini-setup.html
+Beginners Guide to the ESP8266 (Very Good) https://tttapa.github.io/ESP8266/Chap01%20-%20ESP8266.html
 
-Install CH340 driver for wemos d1 mini usb serial communication
+Setup Instructions: 
+[Setup Tutorial](https://averagemaker.com/2018/03/wemos-d1-mini-setup.html)
 
-    https://www.wemos.cc/en/latest/ch340_driver.html
+Install CH340 driver for usb serial communication:
+[Driver Installation [wemos.cc]](https://www.wemos.cc/en/latest/ch340_driver.html)
+
+### Pin Numbering for Wemos in arduino IDE
+
+![wemos D1 Mini - Arduino IDE pin numbering](./images/wemosD1mini-arduino-pin-numbering.png)
 
 If the driver doesn't want to install select uninstall and then install again. seemed to work
 
@@ -99,3 +105,22 @@ ESP8266 HTTP server: Serving HTML, Javascript and CSS
 
 Voltage regulator and Motor driver
     https://www.pololu.com/product/1202 -- Got but discontinued
+
+# Websockets on the ESP8266
+
+This is the starting point, but essentially use the Websocket_LED example and change the html and javascript to suit the needs of the stupid actuator.
+
+Future work will involve making things look a bit nicer. This will mean getting rid of the inline javasctipt in the html file and using the SPI flash memory on the esp8266 (4MB) 
+
+https://tttapa.github.io/ESP8266/Chap11%20-%20SPIFFS.html
+
+https://www.mischianti.org/2020/12/07/websocket-on-arduino-esp8266-and-esp32-client-1/
+
+https://github.com/Links2004/arduinoWebSockets
+
+## How the ESP8266 Websocket stuff works
+
+https://tttapa.github.io/ESP8266/Chap14%20-%20WebSocket.html
+
+
+           

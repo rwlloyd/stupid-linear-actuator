@@ -1,14 +1,15 @@
-// Make a single stepper bounce from one soft limit to another
-//
-// Copyright (C) 2012 Mike McCauley
-// $Id: Random.pde,v 1.1 2011/01/05 01:51:01 mikem Exp mikem $
+//Sketch to crudely control a stepper driven linear actuator over serialEvent
+// 
+// On start up, the actuator will home towards the expected endstop. After homing it will await 
+// serial input via the console. 
+// +ve numbers move x steps away from the endstop
+// -ve numbers move x steps trowards the endstop 
+// If you find the opposite of this true, flip the phases of the stepper motor.
 
-// Modified by R Lloyd. 2021.
+// R Lloyd. 2021.
 
 #include <AccelStepper.h>
- /// https://www.pjrc.com/teensy/td_libs_AccelStepper.html
-
-
+// https://www.pjrc.com/teensy/td_libs_AccelStepper.html
 
 const int motorInterfaceType = 1; // Not strictly necessary, but helps explain the random 1 in the function call
 const int stepPin = 0; //D3
@@ -17,14 +18,17 @@ const int enablePin = 4; //D2
 const int homePin = 5; //D1
 
 const float actuator_travel_mm = 88; // mm
-const int max_speed = 5000; //stepsPerSecond
-const int homing_speed = 2000; // stepsPerSecond
+const int max_speed = 100000; //stepsPerSecond
+const int max_acceleration = 10000; //stepsPerSecondSquared
+const int homing_speed = 5000; // stepsPerSecond
 const int homing_backoff = 100; // steps    
 const float stepsPerMM = 44.44; // https://blog.prusaprinters.org/calculator_3416/
 int actuator_travel_steps = actuator_travel_mm * stepsPerMM;
 
 boolean homed = false; // keep track of awareness of the 1D world
 int position = 0; // keep track of the cirrent position
+
+bool enabled = false;
 
 // Variables to recieve a new message byte by byte as a string of text
 String inputString = "";         // a String to hold incoming data
@@ -38,43 +42,48 @@ AccelStepper stepper = AccelStepper(motorInterfaceType, stepPin, dirPin);
 
 void setup() {
   pinMode(homePin, INPUT_PULLUP);
+  pinMode(enablePin, OUTPUT);
 
   Serial.begin(115200);
   inputString.reserve(200);
   delay(1000);
   // Change these to suit your stepper if you want this is for a4988, 3200 steps/rev
   stepper.setMaxSpeed(max_speed); //stepsPerSecond
-  stepper.setAcceleration(1000); //stepsPerSecondSquared
+  stepper.setAcceleration(max_acceleration); //stepsPerSecondSquared
+
+  //enabled = true;
 
 }
 
 void loop() {
-    if (!homed) {
-      //Serial.println(stepper.currentPosition());
-      findHome();
-    } 
-    else {
-      position = stepper.currentPosition();
-      if (commandRecieved) {
-        stepper.move(newMessage);
-        commandRecieved = false;
-      }
-    //Serial.println(stepper.currentPosition());  
+  // Should we be enabled or Not
+  //digitalWrite(enablePin, !enabled); // need to work out how to structure this?
+  if (!homed) {
+    //Serial.println(stepper.currentPosition());
+    findHome();
+  } 
+  else {
+    position = stepper.currentPosition();
+    if (commandRecieved) {
+      stepper.move(newMessage);
+      commandRecieved = false;
     }
+  //Serial.println(stepper.currentPosition());  
+  }
 
-    while (Serial.available() > 0) { // While therse still some information to read
-      Serial.println("Something Definitely happenned");
-      char inChar = (char)Serial.read(); //Get the new byte, read it as a char
-        // add it to the inputString:
-      inputString += inChar;
-      if (inChar == '\n') { // If you find a newline
-        newMessage = inputString.toInt();
-        Serial.println(newMessage); // What was the message?  
-        commandRecieved = true; // We have a message! It's dealt with in the main loop  
-        inputString = ""; //Reset the input string, ready for the next message
-      }
+  while (Serial.available() > 0) { // While therse still some information to read
+    Serial.println("Something Definitely happenned");
+    char inChar = (char)Serial.read(); //Get the new byte, read it as a char
+    // add it to the inputString:
+    inputString += inChar;
+    if (inChar == '\n') { // If you find a newline
+      newMessage = inputString.toInt();
+      Serial.println(newMessage); // Parrot the message back  
+      commandRecieved = true; // We have a message! It's dealt with in the main loop  
+      inputString = ""; //Reset the input string, ready for the next message
     }
-    stepper.run();
+  }
+  stepper.run();
 }
 
 int findHome() {
