@@ -1,0 +1,31 @@
+"<html>
+        <head>
+            <script>
+                var connection = new WebSocket('ws://'+location.hostname+':81/', ['arduino']);
+                connection.onopen = function () {
+                connection.send('Connect ' + new Date()); 
+                }; 
+                connection.onerror = function (error) {
+                console.log('WebSocket Error ', error);
+                };
+                connection.onmessage = function (e) {
+                console.log('Server: ', e.data);
+                };
+
+                function sendMove() {
+                    //var newmove = parseInt(document.getElementById('move').value).toString(16);
+                    var newmove = parseInt(document.getElementById('move').value).toString();
+                    console.log('Sending: ' + newmove);
+                    connection.send(newmove); 
+                    }
+            </script>
+        </head>
+        <body>
+            Stupid Actuator Control:
+            <br/>
+            <input id=\"move\" type=\"text\">
+            <br/>
+            <button id=\"clickmove\" type=\"button\" onclick=\"sendMove();\" >Send Move</button>
+            <br/>
+        </body>
+        </html>"

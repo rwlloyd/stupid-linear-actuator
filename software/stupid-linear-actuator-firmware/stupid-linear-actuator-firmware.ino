@@ -3,10 +3,10 @@
  *
  *  Created on: 26.11.2015
  *
- * Sketch to crudely control a stepper driven linear actuator over serialEvent
+ * Sketch to crudely control a stepper driven linear actuator over a websocket
  *
  * On start up, the actuator will home towards the expected endstop. After homing it will await 
- * serial input via the console. 
+ * serial input via the console or a websocket connection. 
  * +ve numbers move x steps away from the endstop
  * -ve numbers move x steps trowards the endstop 
  * If you find the opposite of this true, flip the phases of the stepper motor.
@@ -14,7 +14,7 @@
  * R Lloyd. 2021.
  */
 
-// For the stepper motor and swith stuff
+// For the stepper motor and switch stuff
 
 #include <AccelStepper.h>
 // https://www.pjrc.com/teensy/td_libs_AccelStepper.html
@@ -51,8 +51,9 @@ bool commandRecieved = false;
 // Define a stepper and the pins it will use
 AccelStepper stepper = AccelStepper(motorInterfaceType, stepPin, dirPin);
 
-// For the webserver and websocket stuff 
 
+
+// For the webserver and websocket stuff 
 #include <Arduino.h>
 
 #include <ESP8266WiFi.h>
@@ -61,6 +62,8 @@ AccelStepper stepper = AccelStepper(motorInterfaceType, stepPin, dirPin);
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 #include <Hash.h>
+
+#include <FS.h>   // Include the SPIFFS library
 
 #define LED_RED     16
 #define LED_GREEN   14
@@ -87,21 +90,13 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
             break;
         case WStype_TEXT:
             Serial.printf("[%u] get Text: %s\n", num, payload);
-
-            if(payload[0] == '#') {
-                // we get RGB data
-
-                // decode rgb data
-                uint32_t rgb = (uint32_t) strtol((const char *) &payload[1], NULL, 16);
-
-                analogWrite(LED_RED,    ((rgb >> 16) & 0xFF));
-                analogWrite(LED_GREEN,  ((rgb >> 8) & 0xFF));
-                analogWrite(LED_BLUE,   ((rgb >> 0) & 0xFF));
-            }
-
+            
+            //were uint32_t
+            uint8_t move = (uint8_t) strtol((const char *) &payload[0], NULL, 16);
+            stepper.move(move);
+            stepper.run();
             break;
     }
-
 }
 
 void setup() {
@@ -165,7 +160,8 @@ void setup() {
         //send index.html
         server.send(200, 
         "text/html", 
-        "<html><head><script>var connection = new WebSocket('ws://'+location.hostname+':81/', ['arduino']);connection.onopen = function () {  connection.send('Connect ' + new Date()); }; connection.onerror = function (error) {    console.log('WebSocket Error ', error);};connection.onmessage = function (e) {  console.log('Server: ', e.data);};function sendRGB() {  var r = parseInt(document.getElementById('r').value).toString(16);  var g = parseInt(document.getElementById('g').value).toString(16);  var b = parseInt(document.getElementById('b').value).toString(16);  if(r.length < 2) { r = '0' + r; }   if(g.length < 2) { g = '0' + g; }   if(b.length < 2) { b = '0' + b; }   var rgb = '#'+r+g+b;    console.log('RGB: ' + rgb); connection.send(rgb); }</script></head><body>LED Control:<br/><br/>R: <input id=\"r\" type=\"range\" min=\"0\" max=\"255\" step=\"1\" oninput=\"sendRGB();\" /><br/>G: <input id=\"g\" type=\"range\" min=\"0\" max=\"255\" step=\"1\" oninput=\"sendRGB();\" /><br/>B: <input id=\"b\" type=\"range\" min=\"0\" max=\"255\" step=\"1\" oninput=\"sendRGB();\" /><br/></body></html>");
+        "<html><head><script>var connection = new WebSocket('ws://'+location.hostname+':81/', ['arduino']);connection.onopen = function () {connection.send('Connect ' + new Date()); }; connection.onerror = function (error) {console.log('WebSocket Error ', error);};connection.onmessage = function (e) {console.log('Server: ', e.data);};function sendMove() {var newmove = parseInt(document.getElementById('move').value).toString();console.log('Sending: ' + newmove);connection.send(newmove); }</script></head><body>Stupid Actuator Control:<br/><input id=\"move\" type=\"text\"><br/><button id=\"clickmove\" type=\"button\" onclick=\"sendMove();\" >Send Move</button><br/></body></html>");
+        // "<html><head><script>var connection = new WebSocket('ws://'+location.hostname+':81/', ['arduino']);connection.onopen = function () {  connection.send('Connect ' + new Date()); }; connection.onerror = function (error) {    console.log('WebSocket Error ', error);};connection.onmessage = function (e) {  console.log('Server: ', e.data);};function sendRGB() {  var r = parseInt(document.getElementById('r').value).toString(16);  var g = parseInt(document.getElementById('g').value).toString(16);  var b = parseInt(document.getElementById('b').value).toString(16);  if(r.length < 2) { r = '0' + r; }   if(g.length < 2) { g = '0' + g; }   if(b.length < 2) { b = '0' + b; }   var rgb = '#'+r+g+b;    console.log('RGB: ' + rgb); connection.send(rgb); }</script></head><body>LED Control:<br/><br/>R: <input id=\"r\" type=\"range\" min=\"0\" max=\"255\" step=\"1\" oninput=\"sendRGB();\" /><br/>G: <input id=\"g\" type=\"range\" min=\"0\" max=\"255\" step=\"1\" oninput=\"sendRGB();\" /><br/>B: <input id=\"b\" type=\"range\" min=\"0\" max=\"255\" step=\"1\" oninput=\"sendRGB();\" /><br/></body></html>");
     });
 
     server.begin();
